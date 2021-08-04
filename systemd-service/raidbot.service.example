@@ -1,0 +1,12 @@
+[Unit]
+Description=raid-bot
+[Service]
+WorkingDirectory=/../raidbot/
+ExecStart=bin/bash -c '/../raid-bot_venv/bin/python3 main.py'
+Environment=PYTHONUNBUFFERED=1
+Environment=RAIDBOT_PROD_API_KEY={YOUR_KEY}
+Environment=RAIDBOT_LOCAL_API_KEY={YOUR_KEY}
+Restart=on-failure
+User={YOUR_USER}
+[Install]
+WantedBy=default.target
