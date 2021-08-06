@@ -3,12 +3,14 @@ from enum import Enum
 import discord
 import requests
 from discord.ext import commands
+from character import Character
 
 from emojis import class_spec_emojis, weekday_emojis
 from intl import classes_intl, specs_intl
 
+from client import raidBot
+
 LOCAL_ENV_TESTING = os.getenv("LOCAL_ENV_TESTING")
-raidBot = commands.Bot(command_prefix="_", intents=discord.Intents.all())
 raidApplicants = {}
 check_mark = "✅"
 cross_mark = "❎"
@@ -71,7 +73,18 @@ async def on_ready():
                                          "Ich schreibe dir dann. " + wink)
     await welcome_message.add_reaction(check_mark)
 
+@raidBot.event
+async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
+    if is_bot(user):
+        return
 
+    if reaction.emoji == check_mark:
+        if user.id not in raidApplicants:
+            raidApplicants[user.id] = Character(user.id)
+            await raidApplicants[user.id].start_conversation()
+
+
+"""
 @raidBot.event
 async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
     if is_bot(user):
@@ -266,7 +279,7 @@ async def on_message(message: discord.Message):
                 print("raidApplicants:", str(raidApplicants))
             else:
                 await message.channel.send(backend_error_message + "Backend antwortete mit Code " + str(raidApplicants[message.author.id]["response"]))
-
+"""
 
 if not LOCAL_ENV_TESTING:
     raidBot.run(os.getenv("RAIDBOT_PROD_API_KEY"))
