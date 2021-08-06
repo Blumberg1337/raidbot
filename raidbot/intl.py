@@ -38,3 +38,13 @@ specs_intl = {
     "arms": "Waffen",
     "fury": "Furor",
 }
+
+weekdays_intl = {
+    "mo": "Montag",
+    "di": "Dienstag",
+    "mi": "Mittwoch",
+    "do": "Donnerstag",
+    "fr": "Freitag",
+    "sa": "Samstag",
+    "so": "Sonntag"
+}
