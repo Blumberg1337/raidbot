@@ -1,4 +1,5 @@
 import discord
+import asyncio
 from client import raidBot
 from emojis import class_spec_emojis, weekday_emojis
 from intl import classes_intl, specs_intl, weekdays_intl
@@ -31,14 +32,15 @@ class Question:
 
         print(f'{self.field_name}.ask()')
         # create and send message to user
+        reaction_tasks = []
         message = await user.send(question)
         for reaction in answer_reactions:
             if type(reaction) == str:
-                await message.add_reaction(reaction)
+                reaction_tasks.append(asyncio.create_task(message.add_reaction(reaction)))
             else:
-                await message.add_reaction(raidBot.get_emoji(reaction))
+                reaction_tasks.append(asyncio.create_task(message.add_reaction(raidBot.get_emoji(reaction))))
         if self.multiple_choice:
-            await message.add_reaction('✅')
+            reaction_tasks.append(asyncio.create_task(message.add_reaction('✅')))
 
         # await expected type of answer
 
