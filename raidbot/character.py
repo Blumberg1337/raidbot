@@ -104,16 +104,16 @@ class Character:
             },
             answer_type=bool )
 
-        more_days = Question('more_days',
-            'Bist du bereit generell an einem weiteren Tag zu raiden?',
-            answer_reactions={
-                '✅': True,
-                '❎': False
-            },
-            answer_type=bool )
+        # more_days = Question('more_days',
+        #     'Bist du bereit generell an einem weiteren Tag zu raiden?',
+        #     answer_reactions={
+        #         '✅': True,
+        #         '❎': False
+        #     },
+        #     answer_type=bool )
         
         weekdays = Question('weekdays', 
-            'An welchen Tagen hast du übernächste Raid-ID Zeit zum Raiden? \n'+\
+            'An welchen Tagen hast du nächste Raid-ID Zeit zum Raiden? \n'+\
             'Clicke die entsprechenden Wochentage an und danach auf das Häkchen um deine Auswahl zu bestätigen.',
             answer_reactions=weekday_emojis,
             multiple_choice=True
@@ -124,7 +124,7 @@ class Character:
             'cclass':    cclass, 
             'spec':      spec, 
             'rlead':     rlead, 
-            'more_days': more_days,
+        #     'more_days': more_days,
             'weekdays':  weekdays
         } 
 
@@ -139,9 +139,9 @@ class Character:
         embed.set_author(name=self.questions['name'].value, 
             icon_url=f'https://cdn.discordapp.com/emojis/{class_spec_emojis[self.questions["cclass"].value][0]}.png'
         )
-        w2r = "Nein"
-        if self.questions['more_days'].value: w2r = "Ja"
-        embed.add_field(name="Würde 2x raiden: ", value=w2r, inline=True)
+        # w2r = "Nein"
+        # if self.questions['more_days'].value: w2r = "Ja"
+        # embed.add_field(name="Würde 2x raiden: ", value=w2r, inline=True)
         rl = "Nein"
         if self.questions['rlead'].value: rl = "Ja"
         embed.add_field(name="Kann Raids leiten: ", value=rl, inline=True)
