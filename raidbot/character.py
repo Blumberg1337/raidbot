@@ -208,7 +208,7 @@ class Character:
             "so": "5"
         }
         character_api_model = {
-            "name": self.questions['name'].value.upper(),
+            "name": self.questions['name'].value.capitalize(),
             "characterClass": self.questions['cclass'].value,
             "spec": self.questions['spec'].value,
             "raidLead": self.questions['rlead'].value,
