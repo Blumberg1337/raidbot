@@ -2,3 +2,6 @@
 /systemd-service/raidbot.service
 /.idea/
 deploy.sh
+.env
+.pyc
+*/__pycache__/*

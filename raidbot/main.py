@@ -3,107 +3,23 @@ from enum import Enum
 import discord
 import requests
 from discord.ext import commands
+from character import Character
+
+from emojis import class_spec_emojis, weekday_emojis
+from intl import classes_intl, specs_intl
+
+from client import raidBot
 
 LOCAL_ENV_TESTING = os.getenv("LOCAL_ENV_TESTING")
-raidBot = commands.Bot(command_prefix="_", intents=discord.Intents.all())
 raidApplicants = {}
 check_mark = "✅"
 cross_mark = "❎"
 wink = "😉"
 emoji_server_id = "561216209333256216"
-emoji_list = {
-    "druid": [863593609243394088, {
-        "balance": 863593609177071656,
-        "feral": 863593608909553705,
-        "tank": 863593609211019284,
-        "restoration": 863593609340387339,
-    }],
-    "hunter": [863593661206888529, {
-        "beast_mastery": 863593661081321513,
-        "marksmanship": 863593661102030859,
-        "survival": 863593661404151818,
-    }],
-    "mage": [863593695390990346, {
-        "arcane": 863593695261622272,
-        "fire": 863593695294521374,
-        "frost": 863593695411306506,
-    }],
-    "paladin": [863593727351455764, {
-        "holy": 863593727163629588,
-        "protection": 863593727183814696,
-        "retribution": 863593727343722546,
-    }],
-    "priest": [863593923649601537, {
-        "discipline": 863593924010180608,
-        "holy": 863593727163629588,
-        "shadow": 863593924090396702,
-    }],
-    "rogue": [863593969086234654, {
-        "assassination": 863593969070112778,
-        "combat": 863593969057529856,
-        "subtlety": 863593969074438175,
-    }],
-    "shaman": [863593572132585513, {
-        "elemental": 863539342681178112,
-        "enhancement": 863539342689828904,
-        "restoration": 863539342375125023,
-    }],
-    "warlock": [863594114879717386, {
-        "affliction": 863594114901999625,
-        "demonology": 863594114821652494,
-        "destruction": 863594114980905000,
-    }],
-    "warrior": [863594161084039178, {
-        "arms": 863594161046552617,
-        "fury": 863594161130176552,
-        "protection": 863594160909320213,
-    }],
-}
-
-classes_intl = {
-    "druid": "Druide",
-    "hunter": "Jäger",
-    "mage": "Magier",
-    "paladin": "Paladin",
-    "priest": "Priester",
-    "rogue": "Schurke",
-    "shaman": "Schamane",
-    "warlock": "Hexenmeister",
-    "warrior": "Krieger",
-}
-
-specs_intl = {
-    "balance": "Gleichgewicht",
-    "feral": "Wilder Kampf (Katze)",
-    "tank": "Wilder Kampf (Tank)",
-    "restoration": "Wiederherstellung",
-    "beast_mastery": "Tierherrschaft",
-    "marksmanship": "Treffsicherheit",
-    "survival": "Überleben",
-    "arcane": "Arkan",
-    "fire": "Feuer",
-    "frost": "Frost",
-    "holy": "Heilig",
-    "protection": "Schutz",
-    "retribution": "Vergeltung",
-    "discipline": "Disziplin",
-    "shadow": "Schatten",
-    "assassination": "Meucheln",
-    "combat": "Kampf",
-    "subtlety": "Täuschung",
-    "elemental": "Elementar",
-    "enhancement": "Verstärkung",
-    "affliction": "Gebrechen",
-    "demonology": "Dämonologie",
-    "destruction": "Zerstörung",
-    "arms": "Waffen",
-    "fury": "Furor",
-}
 
 
 def is_bot(user: discord.User):
     return user == raidBot.user
-
 
 class UserState(Enum):
     waiting_for_character_name = 0
@@ -157,7 +73,18 @@ async def on_ready():
                                          "Ich schreibe dir dann. " + wink)
     await welcome_message.add_reaction(check_mark)
 
+@raidBot.event
+async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
+    if is_bot(user):
+        return
 
+    if reaction.emoji == check_mark:
+        if user.id not in raidApplicants:
+            raidApplicants[user.id] = Character(user.id)
+            await raidApplicants[user.id].start_conversation()
+
+
+"""
 @raidBot.event
 async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
     if is_bot(user):
@@ -171,7 +98,7 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
     raidlead_choice = "Traust du dir zu **Raids zu leiten**?"
     additional_day_to_raid_choice = "Bist du bereit generell **an einem weiteren Tag** zu raiden?"
     days_to_raid_question = "**An welchen Tagen hast du übernächste Raid-ID Zeit zum Raiden?**\n" \
-                            "Bitte gib in deiner Antwort deutsche Wochentage oder die dafür gängigen Abkürzungen (Mo, Di, ...) ein. "
+                            "Clicke die entsprechenden Wochentage an und danach auf das Häkchen um deine Auswahl zu bestätigen."
     # start interaction with user
     if reaction.emoji == check_mark:
         # save user on first interaction
@@ -205,14 +132,14 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
             raidApplicants[user.id]["state"] = UserState.waiting_for_character_class
             # requesting character class
             message = class_choice
-            for character_class in emoji_list.values():
+            for character_class in class_spec_emojis.values():
                 reactions.append(raidBot.get_emoji(character_class[0]))
         # change state for wrong spec
         elif raidApplicants[user.id]["state"] == UserState.waiting_for_character_spec_confirmation:
             raidApplicants[user.id]["state"] = UserState.waiting_for_character_spec
             # requesting spec
             message = spec_choice
-            for spec_emoji_id in emoji_list[raidApplicants[user.id]["characterClass"]][1].values():
+            for spec_emoji_id in class_spec_emojis[raidApplicants[user.id]["characterClass"]][1].values():
                 reactions.append(raidBot.get_emoji(spec_emoji_id))
         # saving raidlead (false)
         elif raidApplicants[user.id]["state"] == UserState.waiting_for_character_raidlead:
@@ -237,7 +164,7 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
         # requesting character class
         if raidApplicants[user.id]["state"] == UserState.waiting_for_character_class:
             message = class_choice
-            for character_class in emoji_list.values():
+            for character_class in class_spec_emojis.values():
                 reactions.append(raidBot.get_emoji(character_class[0]))
         # user confirmed character class
         elif raidApplicants[user.id]["state"] == UserState.waiting_for_character_class_confirmation:
@@ -246,7 +173,7 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
         # requesting spec
         if raidApplicants[user.id]["state"] == UserState.waiting_for_character_spec:
             message = spec_choice
-            for spec_emoji_id in emoji_list[raidApplicants[user.id]["characterClass"]][1].values():
+            for spec_emoji_id in class_spec_emojis[raidApplicants[user.id]["characterClass"]][1].values():
                 reactions.append(raidBot.get_emoji(spec_emoji_id))
         # user confirmed spec
         elif raidApplicants[user.id]["state"] == UserState.waiting_for_character_spec_confirmation:
@@ -270,8 +197,11 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
             raidApplicants[user.id]["additionalDayToRaid"] = True
             print(str(raidApplicants) + " additional_day(s)_to_raid stored")
             message = days_to_raid_question
+            for emoji_id in weekday_emojis:
+                reactions.append(raidBot.get_emoji(emoji_id))
+            reactions.append(check_mark)
     if raidApplicants[user.id]["state"] == UserState.waiting_for_character_class:
-        for character_class_key, character_class_value in emoji_list.items():
+        for character_class_key, character_class_value in class_spec_emojis.items():
             class_emoji_id = character_class_value[0]
             if isinstance(reaction.emoji, discord.Emoji) and reaction.emoji.id == class_emoji_id:
                 message = "Soll ich **" + classes_intl[character_class_key] + "** für deinen Charakter speichern?"
@@ -284,7 +214,7 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
                 reactions.append(check_mark)
                 reactions.append(cross_mark)
     elif raidApplicants[user.id]["state"] == UserState.waiting_for_character_spec:
-        for spec_key, spec_value in emoji_list[raidApplicants[user.id]["characterClass"]][1].items():
+        for spec_key, spec_value in class_spec_emojis[raidApplicants[user.id]["characterClass"]][1].items():
             spec_emoji_id = spec_value
             if isinstance(reaction.emoji, discord.Emoji) and reaction.emoji.id == spec_emoji_id:
                 message = "Ist **" + specs_intl[spec_key] + "** für deinen Charakter richtig?"
@@ -349,7 +279,7 @@ async def on_message(message: discord.Message):
                 print("raidApplicants:", str(raidApplicants))
             else:
                 await message.channel.send(backend_error_message + "Backend antwortete mit Code " + str(raidApplicants[message.author.id]["response"]))
-
+"""
 
 if not LOCAL_ENV_TESTING:
     raidBot.run(os.getenv("RAIDBOT_PROD_API_KEY"))
