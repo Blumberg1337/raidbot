@@ -1,5 +1,6 @@
 import discord
 import asyncio
+import requests
 from client import raidBot
 from emojis import class_spec_emojis, weekday_emojis
 from intl import classes_intl, specs_intl, weekdays_intl
@@ -119,6 +120,24 @@ class Character:
             multiple_choice=True
         )
 
+        self.confirmation_question = Question('confirmation', 
+            'Sind die Angaben für diesen Character richtig?',
+            answer_reactions={
+                '✅': True,
+                '❎': False
+            },
+            answer_type=bool )
+        
+        self.edit_question = Question('edit',
+            'Welche Frage würdest du gerne nocheinmal beantworten? \n\n```'+\
+            '1: Charactername \n'+\
+            '2: Klasse und Spezialisierung \n'+\
+            '3: Raidleitung\n'+\
+            '4: Wochentage\n'+\
+            '5: keine, war doch alles richtig```\n'+\
+            'Schreib mir die entsprechende Zahl.'
+        )
+
         self.questions = {
             'name':      name, 
             'cclass':    cclass, 
@@ -158,7 +177,51 @@ class Character:
         for question in self.questions.values():
             await question.ask(user)
         
-        await user.send(embed=self.create_embed())
+        while not self.confirmation_question.value:
+            await user.send(embed=self.create_embed())
+
+            await self.confirmation_question.ask(user)
+            if not self.confirmation_question.value:
+                await self.edit_question.ask(user)
+
+                edit_answer = self.edit_question.value
+                if edit_answer == "1":
+                    await self.questions['name'].ask(user)
+
+                elif edit_answer == "2":
+                    await self.questions['cclass'].ask(user)
+                    await self.questions['spec'].ask(user)
+
+                elif edit_answer == "3":
+                    await self.questions['rlead'].ask(user)
+                
+                elif edit_answer == "4":
+                    await self.questions['weekdays'].ask(user)
+
+        wd_map = {
+            "mo": "6",
+            "di": "7",
+            "mi": "1",
+            "do": "2",
+            "fr": "3",
+            "sa": "4",
+            "so": "5"
+        }
+        character_api_model = {
+            "name": self.questions['name'].value.upper(),
+            "characterClass": self.questions['cclass'].value,
+            "spec": self.questions['spec'].value,
+            "raidLead": self.questions['rlead'].value,
+            "possibleDaysToRaid": [ wd_map[wd] for wd in self.questions['weekdays'].value ],
+            "favoredItems": []
+
+        }
+        import json
+        print(json.dumps(character_api_model))
+        response = requests.post('http://localhost:8080/characters/create', json=character_api_model)
+        print(response.status_code)
+
+            
 
         print('end of conversation')
         for q in self.questions.values():
