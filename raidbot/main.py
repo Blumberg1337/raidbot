@@ -48,7 +48,8 @@ async def on_ready():
     #         print(v)
     if not LOCAL_ENV_TESTING:
         print("You are not testing locally!\n" + "LOCAL_ENV_TESTING set to " + str(LOCAL_ENV_TESTING))
-        channel = raidBot.get_channel(863573906354864178)
+        # channel = raidBot.get_channel(863573906354864178)
+        channel = raidBot.get_channel(875119235498647612)
     else:
         print("You are testing locally!\n" + "LOCAL_ENV_TESTING set to " + str(LOCAL_ENV_TESTING))
         channel = raidBot.get_channel(865929233267556363)
