@@ -1,13 +1,9 @@
 import os
 from enum import Enum
+
 import discord
-import requests
-from discord.ext import commands
+
 from character import Character
-
-from emojis import class_spec_emojis, weekday_emojis
-from intl import classes_intl, specs_intl
-
 from client import raidBot
 
 LOCAL_ENV_TESTING = os.getenv("LOCAL_ENV_TESTING")
@@ -20,6 +16,7 @@ emoji_server_id = "561216209333256216"
 
 def is_bot(user: discord.User):
     return user == raidBot.user
+
 
 class UserState(Enum):
     waiting_for_character_name = 0
@@ -72,6 +69,7 @@ async def on_ready():
                                          "Wenn ja, klicke einfach auf den grünen Haken.\n"
                                          "Ich schreibe dir dann. " + wink)
     await welcome_message.add_reaction(check_mark)
+
 
 @raidBot.event
 async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
