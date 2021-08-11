@@ -1,8 +1,7 @@
 import asyncio
-
+import json
 import discord
 import requests
-
 from client import raidBot
 from emojis import class_spec_emojis, weekday_emojis
 from intl import classes_intl, specs_intl, weekdays_intl
@@ -19,6 +18,7 @@ class Question:
         self.depends_on = depends_on
 
         self.value = None
+
 
     async def ask(self, user):
         # templating for questions with dependencies
@@ -150,6 +150,7 @@ class Character:
 
         self.confirmed = False
 
+
     def create_embed(self):
         embed = discord.Embed(
             title=classes_intl[self.questions['cclass'].value],
@@ -168,6 +169,7 @@ class Character:
         wds = ", ".join([weekdays_intl[wd] for wd in self.questions['weekdays'].value])
         embed.add_field(name="Verfügbar am:", value=wds)
         return embed
+
 
     async def start_conversation(self):
         user = raidBot.get_user(self.user_id)
@@ -197,7 +199,7 @@ class Character:
 
                 elif edit_answer == "4":
                     await self.questions['weekdays'].ask(user)
-
+        
         wd_map = {
             "mo": "6",
             "di": "7",
@@ -214,12 +216,14 @@ class Character:
             "raidLead": self.questions['rlead'].value,
             "possibleDaysToRaid": [wd_map[wd] for wd in self.questions['weekdays'].value],
             "favoredItems": []
-
         }
-        import json
+
         print(json.dumps(character_api_model))
         response = requests.post('http://localhost:8080/characters/create', json=character_api_model)
-        print(response.status_code)
+        if(response.status_code == 200):
+            await user.send("Vielen Dank, ich hab alles notiert.")
+        else:
+            await user.send("Da ist etwas schiefgelaufen... bitte sag Icekekw oder Syrana bescheid.")
 
         print('end of conversation')
         for q in self.questions.values():
