@@ -1,4 +1,3 @@
-
 classes_intl = {
     "druid": "Druide",
     "hunter": "Jäger",
