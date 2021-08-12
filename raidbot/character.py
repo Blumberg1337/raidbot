@@ -53,6 +53,10 @@ class Question:
 
             response = await raidBot.wait_for('message', check=check_message)
             self.value = response.content
+            if len(response.content) < 1:
+                print("text reponse empty?")
+                print(response)
+                print(response.content)
         # with answer_reactions we listen for an added reaction on the question
         else:
             def check_reaction(r, u):
@@ -166,7 +170,7 @@ class Character:
         rl = "Nein"
         if self.questions['rlead'].value: rl = "Ja"
         embed.add_field(name="Kann Raids leiten: ", value=rl, inline=True)
-        wds = ", ".join([weekdays_intl[wd] for wd in self.questions['weekdays'].value])
+        wds = ", ".join([weekdays_intl[wd] for wd in self.questions['weekdays'].value]) or "diese woche keine zeit"
         embed.add_field(name="Verfügbar am:", value=wds)
         return embed
 
