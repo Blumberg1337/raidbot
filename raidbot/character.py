@@ -1,19 +1,22 @@
 import asyncio
 import json
+import re
 import discord
 import requests
+import unicodedata
 from client import raidBot
 from emojis import class_spec_emojis, weekday_emojis
 from intl import classes_intl, specs_intl, weekdays_intl
 
 
 class Question:
-    def __init__(self, field_name, question, answer_reactions=None, multiple_choice=False, answer_type=str, depends_on=None):
+    def __init__(self, field_name, question, answer_reactions=None, multiple_choice=False, answer_type=str, depends_on=None, pattern=None):
         self.field_name = field_name
         self.question = question
         self.answer_reactions = answer_reactions or []  # do not move [] into parameter default, because it would always be the same instance
         self.answer_type = answer_type
         self.multiple_choice = multiple_choice
+        self.pattern = pattern
 
         self.depends_on = depends_on
 
@@ -52,11 +55,14 @@ class Question:
                 return m.channel == message.channel and m.author == user
 
             response = await raidBot.wait_for('message', check=check_message)
+
+            if self.pattern and not re.match(self.pattern, unicodedata.normalize('NFC', response.content).strip()):
+                await user.send("Deine Antwort entspricht nicht dem geforderten Format. Probiers nochmal.")
+                await self.ask(user)
+                return
+
             self.value = response.content
-            if len(response.content) < 1:
-                print("text reponse empty?")
-                print(response)
-                print(response.content)
+            print(response.content)
         # with answer_reactions we listen for an added reaction on the question
         else:
             def check_reaction(r, u):
@@ -87,7 +93,7 @@ class Character:
     def __init__(self, user_id):
         self.user_id = user_id
 
-        name = Question('name', 'Wie heißt dein Character, den du anmelden möchtest?')
+        name = Question('name', 'Wie heißt dein Character, den du anmelden möchtest?', pattern=r"^\w\w+$")
 
         cclass = Question('cclass',
                           'Bitte wähle nun die Klasse deines Characters aus.',
