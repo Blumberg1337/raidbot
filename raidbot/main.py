@@ -12,6 +12,7 @@ check_mark = "✅"
 cross_mark = "❎"
 wink = "😉"
 emoji_server_id = "561216209333256216"
+welcome_message_id = False
 
 
 def is_bot(user: discord.User):
@@ -32,10 +33,24 @@ class UserState(Enum):
     waiting_for_user_possible_days_to_raid = 10
     waiting_for_user_possible_days_to_raid_confirmation = 11
 
+@raidBot.event
+async def on_connect():
+    print("===========CONNECTED============")
+
+
+@raidBot.event
+async def on_resume():
+    print("========SESSION RESUMED=========")
+
+
+@raidBot.event
+async def on_disconnect():
+    print("=========DISCONNECTED===========")
+
 
 @raidBot.event
 async def on_ready():
-    print("started")
+    print("============READY===============")
     # for _ in emoji_list.items():
     #     vals = _[1][1].values()
     #     print(_)
@@ -65,16 +80,27 @@ async def on_ready():
             else:
                 print(key, ": ", value)
         await channel.send("**LOCAL_ENV_TESTING mode " + LOCAL_ENV_TESTING + "!**")
-    welcome_message = await channel.send("Hallo, ich bin der RAID-Bot und helfe bei der Zusammenstellung von Raid-Gruppen.\n"
-                                         "**Hast du Zeit und Lust an unseren Raids teilzunehmen?**\n"
-                                         "Wenn ja, klicke einfach auf den grünen Haken.\n"
-                                         "Ich schreibe dir dann. " + wink)
-    await welcome_message.add_reaction(check_mark)
+    
+    global welcome_message_id
+    if not welcome_message_id:
+        print("NO PREVIOUS WELCOME MESSAGE ID FOUND, SENDING NEW WELCOME MESSAGE")
+        welcome_message = await channel.send("Hallo, ich bin der RAID-Bot und helfe bei der Zusammenstellung von Raid-Gruppen.\n"
+                                            "**Hast du Zeit und Lust an unseren Raids teilzunehmen?**\n"
+                                            "Wenn ja, klicke einfach auf den grünen Haken.\n"
+                                            "Ich schreibe dir dann. " + wink)
+        welcome_message_id = welcome_message.id
+        print(f"NEW WELCOME MESSAGE WITH ID: {welcome_message_id}")
+        await welcome_message.add_reaction(check_mark)
+    else:
+        print(f"REUSING EXISTING WELCOME MESSAGE WITH MESSAGE ID: {welcome_message_id}")
 
 
 @raidBot.event
 async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
     if is_bot(user):
+        return
+    
+    if reaction.message.id != welcome_message_id:
         return
 
     if reaction.emoji == check_mark:
