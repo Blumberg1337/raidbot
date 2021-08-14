@@ -93,23 +93,23 @@ class Character:
     def __init__(self, user_id):
         self.user_id = user_id
 
-        name = Question('name', 'Wie heißt dein Character, den du anmelden möchtest?', pattern=r"^\w\w+$")
+        name = Question('name', '**Wie heißt dein Character, den du anmelden möchtest?**', pattern=r"^\w\w+$")
 
         cclass = Question('cclass',
-                          'Bitte wähle nun die Klasse deines Characters aus.',
+                          '**Bitte wähle nun die Klasse deines Characters aus.**',
                           answer_reactions={
                               emoji[0]: cclass for cclass, emoji in class_spec_emojis.items()
                           })
 
         spec = Question('spec',
-                        'Welche Spezialisierung hast du für deinen {cclass} gewählt?',
+                        '**Welche Spezialisierung hast du für deinen {cclass} gewählt?**',
                         answer_reactions=lambda cclass: {
                             emoji: spec for spec, emoji in class_spec_emojis[cclass][1].items()
                         },
                         depends_on=[cclass])
 
         rlead = Question('rlead',
-                         'Traust du dir zu Raids zu leiten?',
+                         '**Traust du dir zu Raids zu leiten?**',
                          answer_reactions={
                              '✅': True,
                              '❎': False
@@ -125,7 +125,7 @@ class Character:
         #     answer_type=bool )
 
         weekdays = Question('weekdays',
-                            'An welchen Tagen hast du nächste Raid-ID Zeit zum Raiden? \n' + \
+                            '**An welchen Tagen hast du nächste Raid-ID Zeit zum Raiden?** \n' + \
                             'Clicke die entsprechenden Wochentage an und danach auf das Häkchen um deine Auswahl zu bestätigen.',
                             answer_reactions=weekday_emojis,
                             multiple_choice=True
